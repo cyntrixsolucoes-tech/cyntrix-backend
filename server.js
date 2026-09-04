@@ -1,22 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import pkg from 'pg';
 
 dotenv.config();
 
-const { Pool } = pkg;
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// Database Connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -27,26 +19,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Test Database Connection
-app.get('/api/db-test', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({ 
-      status: 'OK', 
-      message: 'Banco de dados conectado',
-      time: result.rows[0]
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      status: 'ERROR', 
-      message: 'Erro ao conectar banco',
-      error: error.message 
-    });
-  }
-});
-
 // Login Endpoint (Demo)
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -63,7 +37,7 @@ app.post('/api/login', async (req, res) => {
       });
     }
 
-    // Demo token (sem banco de dados)
+    // Demo token
     const token = 'demo-token-' + Date.now();
     
     res.json({
@@ -94,33 +68,4 @@ app.get('/api/projects', (req, res) => {
         status: 'Em andamento',
         progress: 35,
         startDate: '2026-07-13',
-        estimatedEnd: '2027-01-13'
-      }
-    ]
-  });
-});
-
-// Error Handler
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ 
-    error: 'Erro interno do servidor',
-    message: err.message 
-  });
-});
-
-// 404
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Rota não encontrada',
-    path: req.path 
-  });
-});
-
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server rodando em http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`💾 DB test: http://localhost:${PORT}/api/db-test`);
-});
+        estimatedEnd:
