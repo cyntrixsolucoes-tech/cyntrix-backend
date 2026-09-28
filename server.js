@@ -7,6 +7,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.get('/api/health', (req, res) => res.json({ status: 'OK' }));
+app.get('/api/db-test', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) as total_clientes FROM clientes');
+    res.json({ message: 'Conexão com banco OK!', data: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao conectar com banco', message: error.message });
+  }
+});
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password || password.length < 3) return res.status(400).json({ error: 'Invalid' });
