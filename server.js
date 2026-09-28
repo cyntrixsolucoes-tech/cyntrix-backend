@@ -20,7 +20,14 @@ app.post('/api/login', (req, res) => {
   if (!email || !password || password.length < 3) return res.status(400).json({ error: 'Invalid' });
   res.json({ success: true, token: 'token-' + Date.now(), user: { email } });
 });
-app.get('/api/projects', (req, res) => res.json({ projects: [{ id: 1, name: 'São Luiz' }] }));
-app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+app.get('/api/projects', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, nome as name FROM projetos LIMIT 10');
+    res.json({ success: true, projects: result.rows });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar projetos', message: error.message });
+  }
+});
+app.use((req, res) => res.status(404).json({ error: 'Não encontrado' }));
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server on :${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server em :${PORT}`));
